@@ -17,7 +17,7 @@ const AccountContent = () => {
 
   return (
     <div className='mb-7 px-6'>
-      <div className='flex flex-col gap-y-4'>
+        <div className='flex flex-col gap-y-4'>
         <div>
           <h2 className='text-2xl font-semibold mb-4'>Account Information</h2>
           <div className='flex flex-col gap-y-2'>
@@ -38,7 +38,7 @@ const AccountContent = () => {
             )}
           </div>
         </div>
-      </div>
+        </div>
     </div>
   );
 };

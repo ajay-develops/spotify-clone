@@ -1,0 +1,94 @@
+# Get all songs ordered by created_at DESC
+query GetSongs {
+  songsCollection(orderBy: [{ created_at: DescNullsLast }]) {
+    edges {
+      node {
+        id
+        user_id
+        title
+        artist
+        song_path
+        image_path
+        created_at
+      }
+    }
+  }
+}
+
+# Get single song by ID
+query GetSongById($id: BigInt!) {
+  songsCollection(filter: { id: { eq: $id } }, first: 1) {
+    edges {
+      node {
+        id
+        user_id
+        title
+        artist
+        song_path
+        image_path
+        created_at
+      }
+    }
+  }
+}
+
+# Get songs by user ID
+query GetSongsByUserId($userId: UUID!) {
+  songsCollection(
+    filter: { user_id: { eq: $userId } }
+    orderBy: [{ created_at: DescNullsLast }]
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        title
+        artist
+        song_path
+        image_path
+        created_at
+      }
+    }
+  }
+}
+
+# Search songs by title (case-insensitive)
+query GetSongsByTitle($title: String!) {
+  songsCollection(
+    filter: { title: { ilike: $title } }
+    orderBy: [{ created_at: DescNullsLast }]
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        title
+        artist
+        song_path
+        image_path
+        created_at
+      }
+    }
+  }
+}
+
+# Search songs by artist (case-insensitive)
+query GetSongsByArtist($artist: String!) {
+  songsCollection(
+    filter: { artist: { ilike: $artist } }
+    orderBy: [{ created_at: DescNullsLast }]
+  ) {
+    edges {
+      node {
+        id
+        user_id
+        title
+        artist
+        song_path
+        image_path
+        created_at
+      }
+    }
+  }
+}
+

@@ -1,30 +1,43 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-
 import { Song } from '@/types';
-import getSongs from './getSongs';
+import { executeQuery, convertSongsCollectionToSongs } from '@/libs/graphqlHelpers';
+import gql from 'graphql-tag';
 
-const getSongsByTitle = async (title: String): Promise<Song[]> => {
-  const supabase = createServerComponentClient({
-    cookies: cookies,
-  });
+const GET_SONGS_BY_TITLE = gql`
+  query GetSongsByTitle($title: String!) {
+    songsCollection(
+      filter: { title: { ilike: $title } }
+      orderBy: [{ created_at: DescNullsLast }]
+    ) {
+      edges {
+        node {
+          id
+          user_id
+          title
+          artist
+          song_path
+          image_path
+          created_at
+        }
+      }
+    }
+  }
+`;
 
-  if (!title) {
-    const allSongs = await getSongs();
-    return allSongs;
+const getSongsByTitle = async (title: string): Promise<Song[]> => {
+  // Return empty array if no search query
+  if (!title || title.trim() === '') {
+    return [];
   }
 
-  const { data, error } = await supabase
-    .from('songs')
-    .select('*')
-    .ilike('title', `%${title}%`)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.log(error.message);
+  try {
+    const data = await executeQuery(GET_SONGS_BY_TITLE, {
+      title: `%${title.trim()}%`,
+    });
+    return convertSongsCollectionToSongs(data);
+  } catch (error: any) {
+    console.error('Error searching songs by title:', error.message);
+    return [];
   }
-
-  return (data as any) || [];
 };
 
 export default getSongsByTitle;

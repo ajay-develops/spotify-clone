@@ -34,7 +34,7 @@ const Library = ({ songs }: LibraryProps) => {
       <div className='flex items-center justify-between px-5 pt-4'>
         <div className='inline-flex items-center gap-x-2'>
           <MdLibraryMusic size={26} className='text-neutral-400' />
-          <p className='font-medium text-md text-neutral-400'>Your Library</p>
+          <p className='font-medium text-md text-neutral-400'>Shared Library</p>
         </div>
         <AiOutlinePlus
           className='cursor-pointer text-neutral-400 hover:text-white transition'

@@ -1,23 +1,34 @@
 'use client';
 
-import { PropsWithChildren, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-
+import { PropsWithChildren, createContext, useContext, useState } from 'react';
+import { createClient } from '@/libs/supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '@/types_db';
+
+type SupabaseContext = {
+  supabase: SupabaseClient<Database>;
+};
+
+const Context = createContext<SupabaseContext | undefined>(undefined);
 
 interface SupabaseProviderProps extends PropsWithChildren {}
 
 const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
-  const [supabaseClient] = useState(() =>
-    createClientComponentClient<Database>(),
-  );
+  const [supabase] = useState(() => createClient());
 
   return (
-    <SessionContextProvider supabaseClient={supabaseClient as any}>
+    <Context.Provider value={{ supabase: supabase as any }}>
       {children}
-    </SessionContextProvider>
+    </Context.Provider>
   );
+};
+
+export const useSupabase = () => {
+  const context = useContext(Context);
+  if (context === undefined) {
+    throw new Error('useSupabase must be used inside SupabaseProvider');
+  }
+  return context;
 };
 
 export default SupabaseProvider;

@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  useSessionContext,
-  useSupabaseClient,
-} from '@supabase/auth-helpers-react';
+import { useSupabase } from '@/providers/SupabaseProvider';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { toast } from 'react-hot-toast';
@@ -16,10 +13,24 @@ import useAuthModal from '@/hooks/useAuthModal';
 import Modal from './Modal';
 
 const AuthModal = () => {
-  const supabaseClient = useSupabaseClient();
+  const { supabase } = useSupabase();
   const router = useRouter();
-  const { session } = useSessionContext();
+  const [session, setSession] = useState<any>(null);
   const { onClose, isOpen } = useAuthModal();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
 
   const onChange = (open: boolean) => {
     if (!open) {
@@ -35,17 +46,26 @@ const AuthModal = () => {
   }, [session, router, onClose]);
 
   const handleAnonLogin = async () => {
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email: 'test@test.com',
-      password: 'Password123',
-    });
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously();
 
-    router.refresh();
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Logged In Anonymously');
+      if (error) {
+        if (error.message.includes('disabled')) {
+          toast.error(
+            'Anonymous sign-ins are disabled. Please enable it in Supabase Dashboard > Authentication > Providers > Anonymous',
+            { duration: 6000 }
+          );
+        } else {
+          toast.error(error.message);
+        }
+        console.error('Anonymous sign-in error:', error);
+      } else {
+        toast.success('Logged In Anonymously');
+        router.refresh();
+      }
+    } catch (err: any) {
+      toast.error('Failed to sign in anonymously. Please try again.');
+      console.error('Anonymous sign-in exception:', err);
     }
   };
 
@@ -69,7 +89,7 @@ const AuthModal = () => {
         theme='dark'
         providers={['github']}
         magicLink
-        supabaseClient={supabaseClient as any}
+        supabaseClient={supabase as any}
         appearance={{
           theme: ThemeSupa,
           style: {

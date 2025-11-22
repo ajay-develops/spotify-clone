@@ -1,0 +1,40 @@
+# Get all liked songs for current user with song details
+query GetLikedSongs($userId: UUID!) {
+  likedSongsCollection(
+    filter: { user_id: { eq: $userId } }
+    orderBy: [{ created_at: DescNullsLast }]
+  ) {
+    edges {
+      node {
+        user_id
+        song_id
+        created_at
+        songs {
+          id
+          user_id
+          title
+          artist
+          song_path
+          image_path
+          created_at
+        }
+      }
+    }
+  }
+}
+
+# Check if a song is liked by user
+query CheckSongLiked($userId: UUID!, $songId: BigInt!) {
+  likedSongsCollection(
+    filter: { user_id: { eq: $userId }, song_id: { eq: $songId } }
+    first: 1
+  ) {
+    edges {
+      node {
+        user_id
+        song_id
+      }
+    }
+  }
+}
+

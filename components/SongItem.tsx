@@ -6,6 +6,7 @@ import { Song } from '@/types';
 import useLoadImage from '@/hooks/useLoadImage';
 import PlayButton from './PlayButton';
 import LikeButton from './LikeButton';
+import DeleteButton from './DeleteButton';
 
 interface SongItemProps {
   data: Song;
@@ -41,12 +42,9 @@ const SongItem = ({ data, onClick }: SongItemProps) => {
       <div className='absolute bottom-[100px] right-5'>
         <PlayButton data={data} onClick={onClick} />
       </div>
-      <div
-        className='absolute opacity-0 bottom-[100px] left-5 rounded-full 
-        transition translate translate-y-1/4 group-hover:opacity-100 
-        group-hover:translate-y-0 hover:scale-110'
-      >
+      <div className='absolute bottom-[100px] left-5 flex items-center gap-x-2 opacity-0 group-hover:opacity-100 transition translate translate-y-1/4 group-hover:translate-y-0'>
         <LikeButton songId={data.id} />
+        <DeleteButton songId={data.id} />
       </div>
     </div>
   );

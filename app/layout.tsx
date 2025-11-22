@@ -3,6 +3,7 @@ import { PropsWithChildren } from 'react';
 import { Figtree } from 'next/font/google';
 
 import SupabaseProvider from '@/providers/SupabaseProvider';
+import UrqlProvider from '@/providers/UrqlProvider';
 import ToasterProvider from '@/providers/ToasterProvider';
 import UserProvider from '@/providers/UserProvider';
 import ModalProvider from '@/providers/ModalProvider';
@@ -30,11 +31,13 @@ const RootLayout = async ({ children }: RootLayoutProps) => {
       <body className={font.className}>
         <ToasterProvider />
         <SupabaseProvider>
-          <UserProvider>
-            <ModalProvider />
-            <Sidebar songs={userSongs}>{children}</Sidebar>
-            <Player />
-          </UserProvider>
+          <UrqlProvider>
+            <UserProvider>
+              <ModalProvider />
+              <Sidebar songs={userSongs}>{children}</Sidebar>
+              <Player />
+            </UserProvider>
+          </UrqlProvider>
         </SupabaseProvider>
       </body>
     </html>

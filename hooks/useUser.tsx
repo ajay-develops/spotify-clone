@@ -1,10 +1,6 @@
 import { useState, createContext, useEffect, useContext } from 'react';
-import { User } from '@supabase/auth-helpers-nextjs';
-import {
-  useSessionContext,
-  useUser as useSupaUser,
-} from '@supabase/auth-helpers-react';
-
+import type { User } from '@supabase/supabase-js';
+import { useSupabase } from '@/providers/SupabaseProvider';
 import { UserDetails } from '@/types';
 
 type UserContextType = {
@@ -23,15 +19,32 @@ export interface Props {
 }
 
 export const MyUserContextProvider = (props: Props) => {
-  const {
-    session,
-    isLoading: isLoadingUser,
-    supabaseClient: supabase,
-  } = useSessionContext();
-  const user = useSupaUser();
-  const accessToken = session?.access_token ?? null;
+  const { supabase } = useSupabase();
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
+
+  const accessToken = session?.access_token ?? null;
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoadingUser(false);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoadingUser(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
 
   const getUserDetails = () => supabase.from('users').select('*').single();
 
@@ -43,7 +56,18 @@ export const MyUserContextProvider = (props: Props) => {
         const userDetailsResult = await getUserDetails();
 
         if (userDetailsResult.data) {
-          setUserDetails(userDetailsResult.data as UserDetails);
+          // Convert database row to UserDetails type
+          // Database has full_name, but UserDetails expects first_name and last_name
+          const dbData = userDetailsResult.data;
+          const fullName = dbData.full_name || '';
+          const nameParts = fullName.split(' ');
+          setUserDetails({
+            id: dbData.id,
+            first_name: nameParts[0] || '',
+            last_name: nameParts.slice(1).join(' ') || '',
+            full_name: fullName || undefined,
+            avatar_url: dbData.avatar_url || undefined,
+          } as UserDetails);
         }
 
         setIsLoadingData(false);

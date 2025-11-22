@@ -1,0 +1,34 @@
+# Insert a new song
+mutation InsertSong($userId: UUID, $title: String!, $artist: String!, $songPath: String!, $imagePath: String!) {
+  insertIntosongsCollection(
+    objects: [
+      {
+        user_id: $userId
+        title: $title
+        artist: $artist
+        song_path: $songPath
+        image_path: $imagePath
+      }
+    ]
+  ) {
+    records {
+      id
+      user_id
+      title
+      artist
+      song_path
+      image_path
+      created_at
+    }
+  }
+}
+
+# Delete a song by ID
+mutation DeleteSong($id: BigInt!) {
+  deleteFromsongsCollection(filter: { id: { eq: $id } }) {
+    records {
+      id
+    }
+  }
+}
+

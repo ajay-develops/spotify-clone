@@ -1,23 +1,46 @@
 import getSongsByTitle from '@/actions/getSongsByTitle';
+import getSongsByArtist from '@/actions/getSongsByArtist';
+import { Song } from '@/types';
 
 import Header from '@/components/Header';
 import SearchInput from '@/components/SearchInput';
 import SearchContent from './components/SearchContent';
-import getSongsByArtist from '@/actions/getSongsByArtist';
 
 export const revalidate = 0;
 
 interface SearchProps {
-  searchParams: {
-    query: string;
-  };
+  searchParams: Promise<{
+    query?: string;
+  }>;
 }
 
 const Search = async ({ searchParams }: SearchProps) => {
-  const songsByTitle = await getSongsByTitle(searchParams.query);
-  const songsByArtist = await getSongsByArtist(searchParams.query);
+  const params = await searchParams;
+  const query = (params?.query || '').trim();
 
-  const songs = songsByTitle.concat(songsByArtist);
+  let songs: Song[] = [];
+
+  // Only search if there's a query
+  if (query) {
+    // Get songs matching title or artist in parallel
+    const [songsByTitle, songsByArtist] = await Promise.all([
+      getSongsByTitle(query),
+      getSongsByArtist(query),
+    ]);
+
+    // Combine and remove duplicates (by id)
+    const songsMap = new Map<string, Song>();
+    
+    songsByTitle.forEach((song) => {
+      songsMap.set(song.id, song);
+    });
+    
+    songsByArtist.forEach((song) => {
+      songsMap.set(song.id, song);
+    });
+
+    songs = Array.from(songsMap.values());
+  }
 
   return (
     <div
